@@ -13,11 +13,13 @@ use crate::{
 };
 
 // GET /health
+#[utoipa::path(get, path = "/health", responses((status=200, description= "Health Check")))]
 pub async fn health() -> &'static str {
     "ok"
 }
 
 // GET /notes
+#[utoipa::path(get, path = "/notes", responses((status = 200, description = "List of notes", body = Vec<Note>), (status = 500, description = "Internal server error")))]
 pub async fn list_notes(State(pool): State<PgPool>) -> Result<Json<Vec<Note>>, AppError> {
     let notes = sqlx::query_as!(
         Note,
@@ -31,6 +33,7 @@ pub async fn list_notes(State(pool): State<PgPool>) -> Result<Json<Vec<Note>>, A
 }
 
 // POST /notes
+#[utoipa::path(post, path = "/notes", request_body = CreateNote, responses((status = 201, description = "Note created", body = Note), (status = 400, description = "Bad request"), (status = 500, description = "Internal server error")))]
 pub async fn create_note(
     State(pool): State<PgPool>,
     Json(payload): Json<CreateNote>,
@@ -54,6 +57,7 @@ pub async fn create_note(
 }
 
 // GET /notes/:id
+#[utoipa::path(get, path = "/notes/{id}", responses((status = 200, description = "Note found", body = Note), (status = 404, description = "Note not found"), (status = 500, description = "Internal server error")))]
 pub async fn get_note(
     State(pool): State<PgPool>,
     Path(id): Path<Uuid>,
@@ -73,6 +77,7 @@ pub async fn get_note(
 }
 
 // PUT /notes/:id
+#[utoipa::path(put, path = "/notes/{id}", request_body = UpdateNote, responses((status = 200, description = "Note updated", body = Note), (status = 404, description = "Note not found"), (status = 500, description = "Internal server error")))]
 pub async fn update_note(
     State(pool): State<PgPool>,
     Path(id): Path<Uuid>,
@@ -109,6 +114,7 @@ pub async fn update_note(
 }
 
 // DELETE /notes/:id
+#[utoipa::path(delete, path = "/notes/{id}", responses((status = 200, description = "Note deleted"), (status = 404, description = "Note not found"), (status = 500, description = "Internal server error")))]
 pub async fn delete_note(
     State(pool): State<PgPool>,
     Path(id): Path<Uuid>,

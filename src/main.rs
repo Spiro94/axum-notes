@@ -8,6 +8,10 @@ use tower_http::{
     trace::TraceLayer,
 };
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
+
+use crate::models::ApiDoc;
 
 mod error;
 mod handlers;
@@ -45,6 +49,7 @@ async fn main() {
 
     // ── 5. Router
     let app = Router::new()
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .route("/health", get(handlers::health))
         .route(
             "/notes",
@@ -56,14 +61,14 @@ async fn main() {
                 .put(handlers::update_note)
                 .delete(handlers::delete_note),
         )
+        .with_state(pool)
         .layer(TraceLayer::new_for_http())
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)
                 .allow_methods(Any)
                 .allow_headers(Any),
-        )
-        .with_state(pool);
+        );
 
     // ── 6. Serve
     let listener = TcpListener::bind("0.0.0.0:3000")
